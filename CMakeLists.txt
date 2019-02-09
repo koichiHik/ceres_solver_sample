@@ -18,8 +18,16 @@ find_package(Eigen3 REQUIRED CONFIG PATHS ${Eigen3_DIR} NO_DEFAULT_PATH)
 set(CERES_LIB_DIR "${CMAKE_SOURCE_DIR}/../../3rdParty/google_ceres_solver/install/lib")
 set(CERES_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../../3rdParty/google_ceres_solver/install/include")
 
-link_directories(${CERES_LIB_DIR})
+# Necessary Libs
+set(NECESSARY_LIBS
+  ceres glog lapack gflags blas ccolamd
+  pthread csparse cholmod cxsparse
+)
+
+message("NECESSARY_LIBS : "  ${NECESSARY_LIBS})
+
 include_directories(${CERES_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIR})
+link_directories(${CERES_LIB_DIR})
 
 add_subdirectory(src)
 
