@@ -14,6 +14,12 @@ set(CMAKE_CXX_FLAGS
 set(Eigen3_DIR "${CMAKE_SOURCE_DIR}/../../3rdParty/eigen334/install/share/eigen3")
 find_package(Eigen3 REQUIRED CONFIG PATHS ${Eigen3_DIR} NO_DEFAULT_PATH)
 
+# PYTHON LIB
+find_package(PythonLibs 2.7 REQUIRED)
+
+# MATPLOTLIB CPP
+set(MATPLOTLIBCPP_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../../3rdParty/matplotlibcpp/matplotlib-cpp")
+
 # CERES DEPENDENCY
 set(CERES_LIB_DIR "${CMAKE_SOURCE_DIR}/../../3rdParty/google_ceres_solver/install/lib")
 set(CERES_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../../3rdParty/google_ceres_solver/install/include")
