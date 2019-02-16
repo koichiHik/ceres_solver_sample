@@ -120,13 +120,13 @@ int main(int argc, char **argv) {
 
   // Add all residual block
   ceres::Problem problem;
-  std::vector<Point2D> refined_odom(noised_diff);
+  std::vector<Point2D> refined_odom_diff(noised_diff);
   Point2D start(odom.front().m_x, odom.front().m_y);
   Point2D end(odom.back().m_x, odom.back().m_y);
   double loop_x = end.m_x - start.m_x;
   double loop_y = end.m_y - start.m_y;
   {
-    for (auto odo_diff : refined_odom) {
+    for (auto odo_diff : refined_odom_diff) {
       problem.AddResidualBlock(
         new ceres::AutoDiffCostFunction<OdomDiffResidual, 1, 1, 1>(
             new OdomDiffResidual(odo_diff.m_x, odo_diff.m_y)),
@@ -149,6 +149,17 @@ int main(int argc, char **argv) {
 
   // Result
   std::cout << summary.BriefReport() << std::endl;
+
+  std::vector<Point2D> refined_odom;
+  {
+    Point2D last_pnt(3.0, 0.0);
+    for (auto odo_diff : refined_odom_diff) {
+      //std::cout << "x_diff : " << odo_diff.m_x << "y_diff : " << odo_diff.m_y << std::endl;
+      last_pnt.m_x += odo_diff.m_x;
+      last_pnt.m_y += odo_diff.m_y;
+      refined_odom.push_back(last_pnt);
+    }
+  }
 
 
   plt::xlim(-5, 5);
