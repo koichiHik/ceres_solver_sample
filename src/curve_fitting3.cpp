@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 
     z_n_elems = z_elems;
     NoiseAddingFunctor<double> nFunc(0.0, 10.0);
-    for_each(z_n_elems.begin(), z_n_elems.end(), [&](vector<double> &v) {
+    for_each(z_n_elems.begin(), z_n_elems.end(), [&nFunc](vector<double> &v) {
       transform(v.begin(), v.end(), v.begin(), nFunc);
     });
   }
