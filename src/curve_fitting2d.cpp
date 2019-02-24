@@ -18,35 +18,17 @@
 using namespace std;
 namespace plt = matplotlibcpp;
 
-template <typename T> struct DescritizeFunctor : public unary_function<T, T> {
-  DescritizeFunctor(T min, T max, T reso)
-      : m_min(min), m_max(max), m_reso(reso) {}
-  T operator()(const T &x) const { return x * m_reso + m_min; }
-
-private:
-  double m_min, m_max, m_reso;
-};
-
 template <typename T> struct CubicFunctor : public unary_function<T, T> {
-  CubicFunctor(T c3, T c2, T c1, T c0)
-      : m_c3(c3), m_c2(c2), m_c1(c1), m_c0(c0) {}
+  CubicFunctor(vector<double> &c) : m_c(c) {}
   T operator()(T x) {
     T x3 = x * x * x;
     T x2 = x * x;
     T x1 = x;
-    return m_c3 * x3 + m_c2 * x2 + m_c1 * x1 + m_c0;
+    return m_c[0] * x3 + m_c[1] * x2 + m_c[2] * x1 + m_c[3];
   }
 
 private:
-  T m_c3, m_c2, m_c1, m_c0;
-};
-
-template <typename T> struct SquareFunctor : public unary_function<T, T> {
-  SquareFunctor(T c2, T c1, T c0) : m_c2(c2), m_c1(c1), m_c0(c0) {}
-  T operator()(T x) { return m_c2 * x * x + m_c1 * x + m_c0; }
-
-private:
-  T m_c2, m_c1, m_c0;
+  vector<T> m_c;
 };
 
 template <typename T> struct NoiseAddingFunctor : public unary_function<T, T> {
@@ -62,8 +44,8 @@ struct CostFunctor {
   CostFunctor(double x, double y) : m_x(x), m_y(y) {}
 
   template <typename T> bool operator()(const T *const x, T *residual) const {
-    T val = x[3] * std::pow(m_x, 3.0) + x[2] * std::pow(m_x, 2.0) + x[1] * m_x +
-            x[0];
+    T val = x[0] * std::pow(m_x, 3.0) + x[1] * std::pow(m_x, 2.0) + x[2] * m_x +
+            x[3];
     residual[0] = val - m_y;
     return true;
   }
@@ -77,20 +59,22 @@ int main(int argc, char **argv) {
   std::cout << __FILE__ << std::endl;
   google::InitGoogleLogging(argv[0]);
 
-  // 1. Generate Sample Points.
+  // 1. Setting Up Sample Points.
   double minx = -5.0, maxx = 5.0, reso = 0.1;
   int num = (maxx - minx) / reso + 1;
+  // Determine Coefficient
+  vector<double> coeff{0.5, -0.5, -10.5, 1.0};
 
   // Create X Vector
   vector<double> x_vec(num, 0.0);
   iota(x_vec.begin(), x_vec.end(), 0.0);
   transform(x_vec.begin(), x_vec.end(), x_vec.begin(),
-            DescritizeFunctor<double>(minx, maxx, reso));
+            [minx, reso](double val) { return val * reso + minx; });
 
   // Create Y Vector
   vector<double> y_vec(num, 0.0);
   transform(x_vec.begin(), x_vec.end(), y_vec.begin(),
-            CubicFunctor<double>(0.5, -0.5, -10.5, 1.0));
+            CubicFunctor<double>(coeff));
 
   // Create Noised Y Vector
   vector<double> y_vec_noise(num, 0.0);
@@ -117,23 +101,37 @@ int main(int argc, char **argv) {
 
     // Status Report!
     std::cout << summary.BriefReport() << std::endl;
-    std::cout << "a : 0.0, b : 0.0, c : 0.0, d : 0.0" << std::endl;
-    std::cout << "a : " << co_est[3] << " b : " << co_est[2]
-              << " c: " << co_est[1] << " d : " << co_est[0] << std::endl;
+
+    std::cout << "Original Parameters" << std::endl;
+    {
+      ostream_iterator<double> out(std::cout, ", ");
+      copy(coeff.begin(), coeff.end(), out);
+      std::cout << std::endl << std::flush;
+    }
+
+    std::cout << "Estimated Parameters" << std::endl;
+    {
+      ostream_iterator<double> out(std::cout, ", ");
+      copy(coeff.begin(), coeff.end(), out);
+      std::cout << std::endl << std::flush;
+    }
 
     // Generate Point on Estimated Curve.
     transform(x_vec.begin(), x_vec.end(), y_est.begin(),
-              CubicFunctor<double>(co_est[3], co_est[2], co_est[1], co_est[0]));
+              CubicFunctor<double>(co_est));
   }
 
   // 3. Plot Result
-  plt::title("Fitting Sample");
-  plt::xlim(minx - 5, maxx + 5);
-  // plt::ylim(-50, 150);
-  plt::plot(x_vec, y_vec);
-  plt::plot(x_vec, y_est);
-  plt::scatter(x_vec, y_vec_noise);
-  plt::show();
+  {
+    plt::xlim(minx - 5, maxx + 5);
+
+    plt::plot(x_vec, y_vec);
+    plt::title("Orignal vs Estimated");
+    plt::scatter(x_vec, y_vec_noise);
+    plt::plot(x_vec, y_est);
+
+    plt::show();
+  }
 
   return 0;
 }
