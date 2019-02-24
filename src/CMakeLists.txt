@@ -33,9 +33,19 @@ target_link_libraries(
 # Curve Fitting Original Sample
 include_directories(${MATPLOTLIBCPP_INCLUDE_DIR})
 include_directories(${PYTHON_INCLUDE_DIR})
-add_executable(curve_fitting_sample curve_fitting_sample.cpp)
+add_executable(curve_fitting2d curve_fitting2d.cpp)
 target_link_libraries(
-  curve_fitting_sample
+  curve_fitting2d
+  ${NECESSARY_LIBS}
+  ${PYTHON_LIBRARY}
+)
+
+# Curve Fitting Original Sample
+include_directories(${MATPLOTLIBCPP_INCLUDE_DIR})
+include_directories(${PYTHON_INCLUDE_DIR})
+add_executable(curve_fitting3d curve_fitting3d.cpp)
+target_link_libraries(
+  curve_fitting3d
   ${NECESSARY_LIBS}
   ${PYTHON_LIBRARY}
 )
